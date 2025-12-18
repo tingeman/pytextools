@@ -77,7 +77,7 @@ def scientific(x, sig=3, tex=True):
 
             
 def append_figure(file, figfilepath, sideways=False, caption=None, label=None, 
-                  loc='[htp]', width='\linewidth', fig_args=''):
+                  loc='[htp]', width=r'\linewidth', fig_args=''):
     """Adds figure to tex file.
     
     Parameters
@@ -227,9 +227,9 @@ def append_newpage(file):
 
     
 def append_chapter_title(file, title, label=None):
-    txt = '\chapter{{{0}}}'.format(title)
+    txt = r'\chapter{{{0}}}'.format(title)
     if label is not None:
-        txt += '\label{{{0}}}'.format(label)
+        txt += r'\label{{{0}}}'.format(label)
     
     file.write(txt+'\n\n')
     
