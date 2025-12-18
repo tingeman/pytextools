@@ -2,6 +2,10 @@ import os
 import posixpath
 import pandas as pd
 import numpy as np
+try:
+    import ipdb as pdb
+except ImportError:
+    import pdb
 
 # use double curly braces {{}} for any 'LaTeX' curly braces
 # and single curly braces {} for any python formatting 
@@ -46,6 +50,13 @@ def create_dirs(dir_list):
     for d in dir_list:
         if not os.path.exists(d):
             os.makedirs(d)
+
+def escape_curly_braces(s):
+    """Escapes curly braces in a string or a list of strings."""
+    # If s is a list of strings, apply to each element
+    if isinstance(s, list):
+        return [escape_curly_braces(item) for item in s]
+    return s.replace('{', '{{').replace('}', '}}')
 
             
 def fixed(x, sig=3):
@@ -105,12 +116,12 @@ def append_figure(file, figfilepath, sideways=False, caption=None, label=None,
         txt = normalfig
     
     if caption is not None:
-        cap = '\n\caption{{{0}}}'.format(caption)
+        cap = '\n' + r'\caption{{{0}}}'.format(caption)
     else:
         cap = ''
     
     if label is not None:
-        lab = '\n\label{{fig:{0}}}'.format(label)
+        lab = '\n' + r'\label{{fig:{0}}}'.format(label)
     else:
         lab = ''
     
@@ -178,33 +189,38 @@ def append_table(file, df, na_rep='', small=True, sideways=False, centering=Fals
         file.write('\\small\n')
     
     if caption is not None:
-        cap = '\n\caption{{{0}}}'.format(caption)
+        cap = '\n' + r'\caption{{{0}}}'.format(caption)
     else:
         cap = ''
     
     if label is not None:
-        lab = '\n\label{{tab:{0}}}'.format(label)
+        lab = '\n' + r'\label{{tab:{0}}}'.format(label)
     else:
         lab = ''
 
     if caption_above:
         file.write(cap)
         file.write(lab+'\n')
-        
+
+    # Use only columns mentioned in kwargs['columns']
+    # Ensure columns are in the right order
+    if 'columns' in kwargs:
+        columns = kwargs.pop('columns')
+        df = df[columns]
+
     txt = df.to_latex(na_rep=na_rep, **kwargs)
     file.write(txt)
-
     
     if not caption_above:
         file.write(cap)
         file.write(lab+'\n')
         
     if threeparttable:
-        file.write('\\begin{tablenotes}\n')
+        file.write(r'\begin{tablenotes}' + '\n')
         file.write(tablenotes)
         file.write('\n')
-        file.write('\\end{tablenotes}\n')
-        file.write('\end{threeparttable}\n')
+        file.write(r'\end{tablenotes}' + '\n')
+        file.write(r'\end{threeparttable}' + '\n')
     
     file.write('\\end{table}')
 
@@ -217,9 +233,9 @@ def append_table(file, df, na_rep='', small=True, sideways=False, centering=Fals
     
 def append_section_heading(file, secname, label=None, indent=0):
     if label is None:
-        file.write('{0}\\section{{{1}}}\n\n'.format( ' '*indent,secname))
+        file.write('{0}'.format(' '*indent) + r'\section{{{1}}}'.format(secname) + '\n\n')
     else:
-        file.write('{0}\\section{{{1}}}\label{{{2}}}\n\n'.format( ' '*indent,secname,label))
+        file.write('{0}'.format(' '*indent) + r'\section{{{1}}}\label{{{2}}}'.format(secname, label) + '\n\n')
     
 
 def append_newpage(file):
@@ -324,14 +340,14 @@ def produce_latex_file(info):
             # Since we are using siunitx to typeset the columns, 
             # non-numerical cell contents must be braced...
             headers = ['{Step}', 
-                       '{$\\sigma$ [\si{kPa}]}', 
-                       '{$T$ [\si{\celsius}]}',
-                       '{$\\varepsilon_{0}$ [\%]}',
-                       '{$\\varepsilon_{50}$ [\%]}',
-                       '{$\\varepsilon_{100}$ [\%]}',
-                       '{$\\varepsilon_{f}$ [\%]}',
-                       '{$C_{\\alpha}$ [\%/lct]}',
-                       '{$c_v$ [\si{m^2/s}]}',
+                       r'{$\sigma$ [\si{kPa}]}', 
+                       r'{$T$ [\si{\celsius}]}',
+                       r'{$\varepsilon_{0}$ [\%]}',
+                       r'{$\varepsilon_{50}$ [\%]}',
+                       r'{$\varepsilon_{100}$ [\%]}',
+                       r'{$\varepsilon_{f}$ [\%]}',
+                       r'{$C_{\alpha}$ [\%/lct]}',
+                       r'{$c_v$ [\si{m^2/s}]}',
                        '{$K$ [\si{kPa}]}',
                        '{$k_0$ [\si{m/s}]}']                       
 

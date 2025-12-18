@@ -1,4 +1,5 @@
 # Development / quick-install requirements for this project
 pandas
 numpy>=1.24
+jinja2
 # If you need to pin versions, replace the above with e.g. pandas==1.5.3
